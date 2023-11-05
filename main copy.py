@@ -9,7 +9,7 @@ host = "localhost"
 user = "root"
 password = "Root@123"
 database = "library"
-columns_1 = ("book_id", "book_name", "student_roll", "student_name", "course", "subject", "issue_date", "return_date")
+columns_1 = ("book_id", "book_name", "student_roll", "student_name", "issue_date", "return_date")
 connection = sql.connect(host=host, user=user, password=password, database=database)
 curs = connection.cursor()
 
@@ -20,7 +20,7 @@ def ClearScreen():
 def hide_title_label():
     title_label.place_forget()
 
-def AllBorrowRecords(): #line 42
+def AllBorrowRecordsGUI_Func(): #line 42
     ClearScreen()
     hide_title_label()
  
@@ -53,7 +53,7 @@ def AllBorrowRecords(): #line 42
     except Exception as e:
         messagebox.showerror("Error!", f"Error due to {str(e)}")
 
-def AddNewBook():
+def AddBookGUI():
     ClearScreen()
     hide_title_label()
     # Create labels, entry fields, and other widgets here
@@ -74,13 +74,13 @@ def AddNewBook():
     submit_bt_1 = tk.Button(frame_lhs, text='Submit', font=("Arial", 12), bd=2, command=Submit, cursor="hand2", bg="gray", fg="black")
     submit_bt_1.place(x=310, y=459, width=100)
 
-def ReturnBook(): #add , ShowRecordsforReturn
+def ReturnBookGUI(): #add , ShowRecordsforReturn
     hide_title_label()
     ClearScreen()
     return_book_label = tk.Label(frame_lhs, text="Return Book", font=("Arial", 30, "bold"), bg="lightgray")
     return_book_label.place(x=250, y=40)
 
-    roll_no_label = tk.Label(frame_lhs, text="Enter the Book ID.", font=("Arial", 15, "bold"), bg="deep sky blue")
+    roll_no_label = tk.Label(frame_lhs, text="Enter Student Roll No.", font=("Arial", 15, "bold"), bg="deep sky blue")
     roll_no_label.place(x=210, y=140)
 
     roll_no_entry = tk.Entry(frame_lhs, bg="gray", fg="black")
@@ -89,11 +89,10 @@ def ReturnBook(): #add , ShowRecordsforReturn
     search_button = tk.Button(frame_lhs, text='Search', font=("Arial", 12), bd=2, cursor="hand2", bg="gray", fg="black") #add , command=ShowRecordsforReturn, 
     search_button.place(x=310, y=215, width=100)
 
-def Submit():
     # Handle the submission logic here
     pass
 
-def Search(): #add , SearchBook
+def SearchGUI(): #add , SearchBook
     ClearScreen()
     hide_title_label()
     search_book_label = tk.Label(frame_lhs, text="Search Book", font=("Arial", 30, "bold"), bg="deep sky blue")
@@ -108,7 +107,7 @@ def Search(): #add , SearchBook
     search_button = tk.Button(frame_lhs, text='Search', font=("Arial", 12), bd=2,cursor="hand2", bg="gray", fg="black") #add command=lambda: SearchBook(book_entry.get()) 
     search_button.place(x=310, y=215, width=100)
 
-def IssueBook(BorrowBookAgain, row):
+def IssueBookGUI(BorrowBookAgain, row):
     ClearScreen()
     hide_title_label()
     tree_x = ttk.Scrollbar(frame_lhs, orient=tk.HORIZONTAL)
@@ -176,7 +175,7 @@ def IssueBook(BorrowBookAgain, row):
     submit_button = tk.Button(frame_lhs, text='Submit', font=("Arial", 12), bd=2, command=lambda: BorrowBookAgain(row), cursor="hand2", bg="gray", fg="black")
     submit_button.place(x=300, y=320, width=100)
 
-def ShowBooks():
+def ShowBooksGUI():
     ClearScreen()
     hide_title_label()
     # Defining two scrollbars
@@ -199,20 +198,145 @@ def ShowBooks():
     tree.heading('qty', text='Quantity', anchor=tk.W)
     tree.pack()
 
-def BorrowBookAgain(return_date_entry, ClearScreen, row): #whole thing
+def OnSelectedforReturn(frame, dlt_record_command, borrow_again_command):
+    dlt_record = tk.Button(frame.frame_3, text='Delete', font=(cs.font_1, 12), bd=2, command=dlt_record_command, cursor="hand2", bg=cs.color_2, fg=cs.color_3).place(x=50, y=0, width=100)
+    borrow_again = tk.Button(frame.frame_3, text='Issue Again', font=(cs.font_1, 12), bd=2, command=borrow_again_command, cursor="hand2", bg=cs.color_2, fg=cs.color_3).place(x=180, y=0, width=100)
+
+def ShowRecordsforReturn(roll_no, window, frame_1):
+    if roll_no == "":
+        messagebox.showerror("Error!", "Please enter a roll no.")
+    else:
+        try:
+            connection = sql(host=host, user=user, password=password, database=database)
+            curs = connection.cursor()
+            curs.execute("select * from borrow_record where stu_roll=%s", roll_no)
+            rows = curs.fetchall()
+
+            if len(rows) == 0:
+                messagebox.showerror("Error!", "This roll no. doesn't exist", parent=window)
+                connection.close()
+            else:
+                connection.close()
+                ClearScreen()
+
+                # Defining two scrollbars
+                scroll_x = ttk.Scrollbar(frame_1, orient=tk.HORIZONTAL)
+                scroll_y = ttk.Scrollbar(frame_1, orient=tk.VERTICAL)
+                tree_1 = ttk.Treeview(frame_1, columns=cs.columns_1, height=400, selectmode="extended", yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+                scroll_y.config(command=tree_1.yview)
+                # vertical scrollbar: left side
+                scroll_y.pack(side=tk.LEFT, fill=tk.Y)
+                scroll_x.config(command=tree_1.xview)
+                # Horizontal scrollbar: at bottom
+                scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
+
+                # Table headings
+                tree_1.heading('book_id', text='Book ID', anchor=tk.W)
+                tree_1.heading('book_name', text='Book Name', anchor=tk.W)
+                tree_1.heading('student_roll', text='Student Roll', anchor=tk.W)
+                tree_1.heading('student_name', text='Student Name', anchor=tk.W)
+                tree_1.heading('course', text='Course', anchor=tk.W)
+                tree_1.heading('subject', text='Subject', anchor=tk.W)
+                tree_1.heading('issue_date', text='Issue Date', anchor=tk.W)
+                tree_1.heading('return_date', text='Return Date', anchor=tk.W)
+
+                tree_1.pack()
+
+                for list in rows:
+                    tree_1.insert("", 'end', text=(rows.index(list) + 1), values=(list[0], list[1], list[2], list[3], list[4], list[5], list[6], list[7]))
+        except Exception as e:
+            messagebox.showerror("Error!", f"Error due to {str(e)}", parent=window)
+
+def Submit(id_entry, bookname_entry, author_entry, edition_entry, price_entry, qty_entry, window): #addnewbookfunction
+    if id_entry == "" or bookname_entry == "" or author_entry == "" or edition_entry == "" or price_entry == "" or qty_entry == "":
+        messagebox.showerror("Error!", "Sorry, all fields are required", parent=window)
+    else:
+        try:
+            connection = sql(host=host, user=user, password=password, database=database)
+            curs = connection.cursor()
+            curs.execute("select * from book_list where book_id=%s", id_entry)
+            row = curs.fetchone()
+
+            if row != None:
+                messagebox.showerror("Error!", "This book ID already exists, please try again with another one", parent=window)
+            else:
+                curs.execute("insert into book_list (book_id,book_name,author,edition,price,qty) values(%s,%s,%s,%s,%s,%s)",
+                                (
+                                    id_entry,
+                                    bookname_entry,
+                                    author_entry,
+                                    edition_entry,
+                                    price_entry,
+                                    qty_entry
+                                ))
+                connection.commit()
+                connection.close()
+                messagebox.showinfo('Done!', "The data has been submitted")
+                # Call the reset_fields() method here if available
+
+        except Exception as e:
+            messagebox.showerror("Error!", f"Error due to {str(e)}", parent=window)
+
+def OnSelectedforShowBooks(frame_3, DeleteBook, UpdateBookDetails):
+    dlt_record = tk.Button(frame_3, text='Delete', font=(cs.font_1, 12), bd=2, command=DeleteBook, cursor="hand2", bg=cs.color_2, fg=cs.color_3)
+    dlt_record.place(x=50, y=0, width=100)
+    
+    update_record = tk.Button(frame_3, text='Update', font=(cs.font_1, 12), bd=2, command=UpdateBookDetails, cursor="hand2", bg=cs.color_2, fg=cs.color_3)
+    update_record.place(x=180, y=0, width=100)
+
+def SearchFunction(book_entry, frame_1, window):
+    if book_entry.get() == "":
+        messagebox.showerror("Error!", "Please Enter the Book Name", parent=window)
+    else:
+        try:
+            connection = sql(host=host, user=user, password=password, database=database)
+            curs = connection.cursor()
+            curs.execute("select * from book_list where book_name like %s", ("%" + book_entry.get() + "%"))
+            rows = curs.fetchall()
+            if not rows:
+                messagebox.showinfo("Database Empty", "There is no data to show", parent=window)
+                connection.close()
+            else:
+                connection.close()
+
+                # Create and configure the Treeview widget
+                tree_x = ttk.Scrollbar(frame_1, orient=tk.HORIZONTAL)
+                tree_y = ttk.Scrollbar(frame_1, orient=tk.VERTICAL)
+                tree = ttk.Treeview(frame_1, columns=cs.columns, height=400, selectmode="extended", yscrollcommand=tree_y.set, xscrollcommand=tree_x.set)
+                tree_y.config(command=tree.yview)
+                tree_y.pack(side=tk.LEFT, fill=tk.Y)
+                tree_x.config(command=tree.xview)
+                tree_x.pack(side=tk.BOTTOM, fill=tk.X)
+
+                # Table headings
+                tree.heading('book_id', text='Book ID', anchor=tk.W)
+                tree.heading('book_name', text='Book Name', anchor=tk.W)
+                tree.heading('author', text='Author', anchor=tk.W)
+                tree.heading('edition', text='Edition', anchor=tk.W)
+                tree.heading('price', text='Price', anchor=tk.W)
+                tree.heading('qty', text='Quantity', anchor=tk.W)
+                tree.pack()
+                # Double click on a row
+                tree.bind('<Double-Button-1>', OnSelectedforShowBooks)
+
+                for row in rows:
+                    tree.insert("", 'end', values=(row[0], row[1], row[2], row[3], row[4], row[5]))
+
+        except Exception as e:
+            messagebox.showerror("Error!", f"Error due to {str(e)}", parent=window)
+
+def BorrowBookAgain(return_date_entry, window, ClearScreen, host, user, password, database):
     try:
-        curs.execute("UPDATE borrow_record SET return_date=%s WHERE stu_roll=%s AND book_id=%s",
-                     (
-                         return_date_entry.get(),
-                         row[2],
-                         row[0]
-                     ))
+        connection = pymysql.connect(host=host, user=user, password=password, database=database)
+        curs = connection.cursor()
+        curs.execute("update borrow_record set return_date=%s where stu_roll=%s and book_id=%s",
+                     (return_date_entry.get(), row[2], row[0]))
         messagebox.showinfo("Success!", "The book is issued again")
         connection.commit()
         connection.close()
         ClearScreen()
     except Exception as e:
-        messagebox.showerror("Error!", f"Error due to {str(e)}")
+        messagebox.showerror("Error!", f"Error due to {str(e)}", parent=window)
 
 root = tk.Tk()
 root.title("Library Management System")
@@ -237,22 +361,22 @@ frame_3 = tk.Frame(frame_rhs, bg="gray95")
 frame_3.place(x=0, y=300, relwidth=1, relheight=1)
 
 
-add_book = tk.Button(frame_rhs, text='Add Book', font=(cs.font_1, 12), bd=2, command=AddNewBook, cursor="hand2", bg=cs.color_2, fg=cs.color_3)
+add_book = tk.Button(frame_rhs, text='Add Book', font=(cs.font_1, 12), bd=2, command=AddBookGUI, cursor="hand2", bg=cs.color_2, fg=cs.color_3)
 add_book.place(x=180, y=100, width=100)
 
-all_borrow_records_button = tk.Button(frame_rhs, text='Book Holders', font=("Arial", 12), bd=2, command=AllBorrowRecords, cursor="hand2", bg="gray", fg="black")
+all_borrow_records_button = tk.Button(frame_rhs, text='Book Holders', font=("Arial", 12), bd=2, command=AllBorrowRecordsGUI_Func, cursor="hand2", bg="gray", fg="black")
 all_borrow_records_button.place(x=180, y=40, width=100 )
 
-return_book_button = tk.Button(frame_rhs, text='Return Book', font=("Arial", 12), bd=2, command=ReturnBook, cursor="hand2", bg="gray", fg="black")
+return_book_button = tk.Button(frame_rhs, text='Return Book', font=("Arial", 12), bd=2, command=ReturnBookGUI, cursor="hand2", bg="gray", fg="black")
 return_book_button.place(x=180, y=160, width=100)
 
-issue_book_button = tk.Button(frame_rhs, text='Issue Book', font=("Arial", 12), bd=2, command=lambda: IssueBook(BorrowBookAgain, None), cursor="hand2", bg="gray", fg="black")
+issue_book_button = tk.Button(frame_rhs, text='Issue Book', font=("Arial", 12), bd=2, command=lambda: IssueBookGUI(BorrowBookAgain, None), cursor="hand2", bg="gray", fg="black")
 issue_book_button.place(x=50, y=160, width=100)
 
-search_book_button = tk.Button(frame_rhs, text='Search Book', font=("Arial", 12), bd=2, command=Search, cursor="hand2", bg="gray", fg="black") # add  command=lambda: SearchBook(frame_lhs, ClearScreen, GetBookNametoSearch), 
+search_book_button = tk.Button(frame_rhs, text='Search Book', font=("Arial", 12), bd=2, command=SearchGUI, cursor="hand2", bg="gray", fg="black") # add  command=lambda: SearchBook(frame_lhs, ClearScreen, GetBookNametoSearch), 
 search_book_button.place(x=50, y=100, width=100)
 
-all_books_button = tk.Button(frame_rhs, text='All Books', font=("Arial", 12), bd=2, command=ShowBooks(), cursor="hand2", bg="gray", fg="black")
+all_books_button = tk.Button(frame_rhs, text='All Books', font=("Arial", 12), bd=2, command=ShowBooksGUI(), cursor="hand2", bg="gray", fg="black")
 all_books_button.place(x=50, y=40, width=100)
 
 root.mainloop()
