@@ -18,9 +18,9 @@ Install Tkinter
 
 
 ****Create a Database and Two Tables****
-☛Create a table "book_list" under the "library_management" database
+☛Create a table "books" under the "library_management" database
 
-create table book_list(
+create table books(
 	book_id VARCHAR(10) NOT NULL,
 	book_name VARCHAR(50) NOT NULL,
 	author VARCHAR(50) NOT NULL,
@@ -30,8 +30,8 @@ create table book_list(
 	PRIMARY KEY ( book_id )
 );
 
-☛Create a table "borrow_record" under the same database
-create table borrow_record(
+☛Create a table "borecordsoks" under the same database
+create table borecordsoks(
 	book_id VARCHAR(10) NOT NULL,
 	book_name VARCHAR(50) NOT NULL,
 	stu_roll VARCHAR(15) NOT NULL,
