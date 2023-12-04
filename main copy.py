@@ -1,4 +1,4 @@
-import tkinter as tk                #starts kinter window
+import tkinter as tk                #starts tkinter window
 import mysql.connector as sql
 from tkinter import ttk, messagebox
 import customs as cs
